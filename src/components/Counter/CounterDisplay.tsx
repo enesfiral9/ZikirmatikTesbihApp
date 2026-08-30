@@ -4,9 +4,10 @@ import { View, Text, StyleSheet } from 'react-native';
 interface Props {
   count: number;
   target: number;
+  isNightMode?: boolean;
 }
 
-const CounterDisplay: React.FC<Props> = ({ count, target }) => {
+const CounterDisplay: React.FC<Props> = ({ count, target, isNightMode = false }) => {
   const displayStr = String(count);
   // Referanstaki gibi: mevcut hane kadar dim '8' + gerçek değer üstte
   const totalDigits = Math.max(displayStr.length, 5);
@@ -16,13 +17,13 @@ const CounterDisplay: React.FC<Props> = ({ count, target }) => {
 
   return (
     <View style={styles.wrapper}>
-      {/* LCD Gri/Gümüş Ekran — referanstaki gibi */}
-      <View style={styles.lcdOuter}>
-        <View style={styles.lcdInner}>
+      {/* LCD Gri/Gümüş veya Gece OLED Ekranı */}
+      <View style={[styles.lcdOuter, isNightMode && styles.lcdOuterNight]}>
+        <View style={[styles.lcdInner, isNightMode && styles.lcdInnerNight]}>
           {/* Dim segment arka planı */}
-          <Text style={styles.dimText}>{dimStr}</Text>
-          {/* Gerçek değer — koyu */}
-          <Text style={styles.valueText}>{displayStr}</Text>
+          <Text style={[styles.dimText, isNightMode && styles.dimTextNight]}>{dimStr}</Text>
+          {/* Gerçek değer */}
+          <Text style={[styles.valueText, isNightMode && styles.valueTextNight]}>{displayStr}</Text>
         </View>
       </View>
 
@@ -57,6 +58,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 5,
   },
+  lcdOuterNight: {
+    backgroundColor: '#1B2E17',
+  },
   lcdInner: {
     backgroundColor: '#B5C4A0',   // referanstaki açık gri-yeşim LCD yüzeyi
     borderRadius: 5,
@@ -67,6 +71,9 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
   },
+  lcdInnerNight: {
+    backgroundColor: '#0F1A0E',
+  },
   dimText: {
     position: 'absolute',
     fontSize: 44,
@@ -74,6 +81,9 @@ const styles = StyleSheet.create({
     color: 'rgba(0,0,0,0.12)',     // çok soluk — referanstaki dim segment
     letterSpacing: 6,
     includeFontPadding: false,
+  },
+  dimTextNight: {
+    color: 'rgba(118, 255, 3, 0.12)',
   },
   valueText: {
     fontSize: 44,
@@ -84,6 +94,11 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.2)',
     textShadowRadius: 2,
     textShadowOffset: { width: 1, height: 1 },
+  },
+  valueTextNight: {
+    color: '#76FF03',              // neon parlayan yeşil — gece modu
+    textShadowColor: 'rgba(118, 255, 3, 0.5)',
+    textShadowRadius: 6,
   },
   progressTrack: {
     height: 4,

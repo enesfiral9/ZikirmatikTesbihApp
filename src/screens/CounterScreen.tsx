@@ -40,6 +40,7 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
   const [saveModalVisible, setSaveModalVisible] = useState(false);
   const [themeModalVisible, setThemeModalVisible] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<Theme>(THEMES[0]);
+  const [isNightMode, setIsNightMode] = useState(false);
 
   const { enabled: hapticsEnabled, trigger, triggerSuccess, toggle: toggleHaptics } = useHaptics();
   const { save, updateZikir } = useZikirDB();
@@ -119,7 +120,7 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
     <View style={styles.root}>
       {/* Dinamik Arka Plan Gradiyenti */}
       <LinearGradient
-        colors={currentTheme.bgGradient}
+        colors={isNightMode ? ['#0A120A', '#132013', '#0A120A'] : currentTheme.bgGradient}
         style={StyleSheet.absoluteFill}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -133,16 +134,17 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
             hapticsEnabled={hapticsEnabled}
             onToggleHaptics={toggleHaptics}
             onOpenThemeModal={() => setThemeModalVisible(true)}
-            onOpenSettings={() => {}}
-            topBtnBg={currentTheme.topBtnBg}
+            isNightMode={isNightMode}
+            onToggleNightMode={() => setIsNightMode((prev) => !prev)}
+            topBtnBg={isNightMode ? '#101B10' : currentTheme.topBtnBg}
           />
         </View>
 
         {/* ── Orta: Fiziksel Tesbih Gövdesi ── */}
         <View style={styles.counterSection}>
-          <View style={[styles.greenGlow, { shadowColor: currentTheme.glowShadow }]}>
-            <View style={[styles.bodyOuter, { backgroundColor: currentTheme.outerBorder }]}>
-              <View style={styles.bodyInner}>
+          <View style={[styles.greenGlow, { shadowColor: isNightMode ? '#4CAF50' : currentTheme.glowShadow }]}>
+            <View style={[styles.bodyOuter, { backgroundColor: isNightMode ? '#254E28' : currentTheme.outerBorder }]}>
+              <View style={[styles.bodyInner, isNightMode && { backgroundColor: '#090F09' }]}>
 
                 {/* Etiket veya Aktif Zikir İsim */}
                 {activeZikir ? (
@@ -150,13 +152,13 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
                     style={[
                       styles.activeHeader,
                       {
-                        backgroundColor: currentTheme.activeTagBg,
-                        borderColor: currentTheme.activeTagBorder,
+                        backgroundColor: isNightMode ? 'rgba(76, 175, 80, 0.15)' : currentTheme.activeTagBg,
+                        borderColor: isNightMode ? 'rgba(76, 175, 80, 0.3)' : currentTheme.activeTagBorder,
                       },
                     ]}
                   >
                     <Text
-                      style={[styles.activeTitle, { color: currentTheme.activeTagText }]}
+                      style={[styles.activeTitle, { color: isNightMode ? '#66BB6A' : currentTheme.activeTagText }]}
                       numberOfLines={1}
                     >
                       📌 {activeZikir.name}
@@ -168,7 +170,7 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
 
                 {/* LCD Ekran */}
                 <View style={styles.displayWrap}>
-                  <CounterDisplay count={count} target={target} />
+                  <CounterDisplay count={count} target={target} isNightMode={isNightMode} />
                 </View>
 
                 {/* Butonlar */}
