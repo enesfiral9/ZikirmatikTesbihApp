@@ -59,4 +59,59 @@ export const update = async (id: number, count: number, data?: ZikirFormData): P
 export const remove = async (id: number): Promise<void> => {
   const db = await getDB();
   await db.runAsync('DELETE FROM zikirler WHERE id = ?', id);
+  // Eğer silinen zikir aktif olan zikirse, ayarı temizle
+  const activeId = await getActiveZikirId();
+  if (activeId === id) {
+    await setActiveZikirId(null);
+  }
+};
+
+export const setActiveZikirId = async (id: number | null): Promise<void> => {
+  const db = await getDB();
+  if (id !== null) {
+    await db.runAsync(
+      'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
+      'active_zikir_id',
+      String(id)
+    );
+  } else {
+    await db.runAsync('DELETE FROM settings WHERE key = ?', 'active_zikir_id');
+  }
+};
+
+export const getActiveZikirId = async (): Promise<number | null> => {
+  const db = await getDB();
+  const row = await db.getFirstAsync<any>(
+    'SELECT value FROM settings WHERE key = ?',
+    'active_zikir_id'
+  );
+  if (row && row.value) {
+    return parseInt(row.value, 10);
+  }
+  return null;
+};
+
+export const getLastActiveZikir = async (): Promise<Zikir | null> => {
+  const db = await getDB();
+  const activeId = await getActiveZikirId();
+  let row: any = null;
+
+  if (activeId !== null) {
+    row = await db.getFirstAsync<any>('SELECT * FROM zikirler WHERE id = ?', activeId);
+  }
+
+  if (!row) {
+    row = await db.getFirstAsync<any>('SELECT * FROM zikirler ORDER BY created_at DESC LIMIT 1');
+  }
+
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    name: row.name,
+    arabicName: row.arabic_name,
+    count: row.count,
+    target: row.target,
+    createdAt: formatDate(row.created_at),
+  };
 };

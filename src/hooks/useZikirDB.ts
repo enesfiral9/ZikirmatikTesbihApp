@@ -52,5 +52,22 @@ export const useZikirDB = () => {
     [refresh]
   );
 
-  return { zikirler, loading, save, updateZikir, deleteZikir, refresh };
+  const setActiveZikirId = useCallback(async (id: number | null) => {
+    await repo.setActiveZikirId(id);
+  }, []);
+
+  const getLastActiveZikir = useCallback(async (): Promise<Zikir | null> => {
+    return await repo.getLastActiveZikir();
+  }, []);
+
+  return {
+    zikirler,
+    loading,
+    save,
+    updateZikir,
+    deleteZikir,
+    setActiveZikirId,
+    getLastActiveZikir,
+    refresh,
+  };
 };

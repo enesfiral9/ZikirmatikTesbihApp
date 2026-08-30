@@ -43,7 +43,7 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isNightMode, setIsNightMode] = useState(false);
 
   const { enabled: hapticsEnabled, trigger, triggerSuccess, toggle: toggleHaptics } = useHaptics();
-  const { save, updateZikir } = useZikirDB();
+  const { save, updateZikir, setActiveZikirId, getLastActiveZikir } = useZikirDB();
 
   const handleTargetReached = useCallback(async () => {
     await triggerSuccess();
@@ -57,14 +57,30 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
     onTargetReached: handleTargetReached,
   });
 
+  // Başlangıçta veya menüden seçildiğinde aktif zikri yükle
   useEffect(() => {
+    let isMounted = true;
+
     if (route.params?.activeZikir) {
       const z = route.params.activeZikir;
       setActiveZikir(z);
+      setActiveZikirId(z.id);
       setCount(z.count);
       setTarget(z.target || 33);
+    } else {
+      getLastActiveZikir().then((lastZikir) => {
+        if (isMounted && lastZikir) {
+          setActiveZikir(lastZikir);
+          setCount(lastZikir.count);
+          setTarget(lastZikir.target || 33);
+        }
+      });
     }
-  }, [route.params?.activeZikir, setCount]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [route.params?.activeZikir, setCount, setActiveZikirId, getLastActiveZikir]);
 
   const handleIncrement = useCallback(async () => {
     await trigger();
@@ -80,25 +96,28 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
         onPress: () => {
           reset();
           setActiveZikir(null);
+          setActiveZikirId(null);
         },
       },
     ]);
-  }, [reset]);
+  }, [reset, setActiveZikirId]);
 
   const handleSaveOrUpdate = useCallback(async () => {
     if (activeZikir) {
       await updateZikir(activeZikir.id, count);
+      await setActiveZikirId(activeZikir.id);
       setActiveZikir((prev) => (prev ? { ...prev, count } : null));
       Alert.alert('Üzerine Eklendi ✓', `"${activeZikir.name}" zikri ${count} olarak güncellendi.`);
     } else {
       setSaveModalVisible(true);
     }
-  }, [activeZikir, count, updateZikir]);
+  }, [activeZikir, count, updateZikir, setActiveZikirId]);
 
   const handleModalSave = useCallback(
     async (data: ZikirFormData) => {
       if (activeZikir) {
         await updateZikir(activeZikir.id, count, data);
+        await setActiveZikirId(activeZikir.id);
         setActiveZikir((prev) =>
           prev
             ? { ...prev, name: data.name, arabicName: data.arabicName, target: data.target, count }
@@ -109,11 +128,12 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
       } else {
         const created = await save(data, count);
         setActiveZikir(created);
+        await setActiveZikirId(created.id);
         setSaveModalVisible(false);
         Alert.alert('Kaydedildi ✓', `"${data.name}" listenize eklendi ve üzerine ekleme moduna geçildi.`);
       }
     },
-    [activeZikir, save, updateZikir, count]
+    [activeZikir, save, updateZikir, count, setActiveZikirId]
   );
 
   return (
@@ -182,7 +202,7 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
                       ]}
                       numberOfLines={1}
                     >
-                      📌 {activeZikir.name}
+                      ✨ Şu Zikirdesiniz: {activeZikir.name}
                     </Text>
                   </View>
                 ) : (
