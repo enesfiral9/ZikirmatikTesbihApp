@@ -5,11 +5,22 @@ interface Props {
   count: number;
   target: number;
   isNightMode?: boolean;
+  nightLcdOuter?: string;
+  nightLcdInner?: string;
+  nightLcdText?: string;
+  nightDimText?: string;
 }
 
-const CounterDisplay: React.FC<Props> = ({ count, target, isNightMode = false }) => {
+const CounterDisplay: React.FC<Props> = ({
+  count,
+  target,
+  isNightMode = false,
+  nightLcdOuter,
+  nightLcdInner,
+  nightLcdText,
+  nightDimText,
+}) => {
   const displayStr = String(count);
-  // Referanstaki gibi: mevcut hane kadar dim '8' + gerçek değer üstte
   const totalDigits = Math.max(displayStr.length, 5);
   const dimStr = '8'.repeat(totalDigits);
   const progress = target > 0 ? Math.min(count / target, 1) : 0;
@@ -18,12 +29,42 @@ const CounterDisplay: React.FC<Props> = ({ count, target, isNightMode = false })
   return (
     <View style={styles.wrapper}>
       {/* LCD Gri/Gümüş veya Gece OLED Ekranı */}
-      <View style={[styles.lcdOuter, isNightMode && styles.lcdOuterNight]}>
-        <View style={[styles.lcdInner, isNightMode && styles.lcdInnerNight]}>
+      <View
+        style={[
+          styles.lcdOuter,
+          isNightMode && styles.lcdOuterNight,
+          isNightMode && nightLcdOuter ? { backgroundColor: nightLcdOuter } : null,
+        ]}
+      >
+        <View
+          style={[
+            styles.lcdInner,
+            isNightMode && styles.lcdInnerNight,
+            isNightMode && nightLcdInner ? { backgroundColor: nightLcdInner } : null,
+          ]}
+        >
           {/* Dim segment arka planı */}
-          <Text style={[styles.dimText, isNightMode && styles.dimTextNight]}>{dimStr}</Text>
+          <Text
+            style={[
+              styles.dimText,
+              isNightMode && styles.dimTextNight,
+              isNightMode && nightDimText ? { color: nightDimText } : null,
+            ]}
+          >
+            {dimStr}
+          </Text>
           {/* Gerçek değer */}
-          <Text style={[styles.valueText, isNightMode && styles.valueTextNight]}>{displayStr}</Text>
+          <Text
+            style={[
+              styles.valueText,
+              isNightMode && styles.valueTextNight,
+              isNightMode && nightLcdText
+                ? { color: nightLcdText, textShadowColor: nightLcdText }
+                : null,
+            ]}
+          >
+            {displayStr}
+          </Text>
         </View>
       </View>
 

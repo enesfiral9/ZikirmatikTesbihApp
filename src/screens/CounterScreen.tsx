@@ -120,7 +120,7 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
     <View style={styles.root}>
       {/* Dinamik Arka Plan Gradiyenti */}
       <LinearGradient
-        colors={isNightMode ? ['#0A120A', '#132013', '#0A120A'] : currentTheme.bgGradient}
+        colors={isNightMode ? currentTheme.nightBgGradient : currentTheme.bgGradient}
         style={StyleSheet.absoluteFill}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -136,15 +136,25 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
             onOpenThemeModal={() => setThemeModalVisible(true)}
             isNightMode={isNightMode}
             onToggleNightMode={() => setIsNightMode((prev) => !prev)}
-            topBtnBg={isNightMode ? '#101B10' : currentTheme.topBtnBg}
+            topBtnBg={isNightMode ? currentTheme.nightTopBtnBg : currentTheme.topBtnBg}
           />
         </View>
 
         {/* ── Orta: Fiziksel Tesbih Gövdesi ── */}
         <View style={styles.counterSection}>
-          <View style={[styles.greenGlow, { shadowColor: isNightMode ? '#4CAF50' : currentTheme.glowShadow }]}>
-            <View style={[styles.bodyOuter, { backgroundColor: isNightMode ? '#254E28' : currentTheme.outerBorder }]}>
-              <View style={[styles.bodyInner, isNightMode && { backgroundColor: '#090F09' }]}>
+          <View
+            style={[
+              styles.greenGlow,
+              { shadowColor: isNightMode ? currentTheme.nightGlowShadow : currentTheme.glowShadow },
+            ]}
+          >
+            <View
+              style={[
+                styles.bodyOuter,
+                { backgroundColor: isNightMode ? currentTheme.nightOuterBorder : currentTheme.outerBorder },
+              ]}
+            >
+              <View style={[styles.bodyInner, isNightMode && { backgroundColor: '#0A0A0A' }]}>
 
                 {/* Etiket veya Aktif Zikir İsim */}
                 {activeZikir ? (
@@ -152,13 +162,24 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
                     style={[
                       styles.activeHeader,
                       {
-                        backgroundColor: isNightMode ? 'rgba(76, 175, 80, 0.15)' : currentTheme.activeTagBg,
-                        borderColor: isNightMode ? 'rgba(76, 175, 80, 0.3)' : currentTheme.activeTagBorder,
+                        backgroundColor: isNightMode
+                          ? currentTheme.nightActiveTagBg
+                          : currentTheme.activeTagBg,
+                        borderColor: isNightMode
+                          ? currentTheme.nightActiveTagBorder
+                          : currentTheme.activeTagBorder,
                       },
                     ]}
                   >
                     <Text
-                      style={[styles.activeTitle, { color: isNightMode ? '#66BB6A' : currentTheme.activeTagText }]}
+                      style={[
+                        styles.activeTitle,
+                        {
+                          color: isNightMode
+                            ? currentTheme.nightActiveTagText
+                            : currentTheme.activeTagText,
+                        },
+                      ]}
                       numberOfLines={1}
                     >
                       📌 {activeZikir.name}
@@ -170,7 +191,15 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
 
                 {/* LCD Ekran */}
                 <View style={styles.displayWrap}>
-                  <CounterDisplay count={count} target={target} isNightMode={isNightMode} />
+                  <CounterDisplay
+                    count={count}
+                    target={target}
+                    isNightMode={isNightMode}
+                    nightLcdOuter={currentTheme.nightLcdOuter}
+                    nightLcdInner={currentTheme.nightLcdInner}
+                    nightLcdText={currentTheme.nightLcdText}
+                    nightDimText={currentTheme.nightDimText}
+                  />
                 </View>
 
                 {/* Butonlar */}
