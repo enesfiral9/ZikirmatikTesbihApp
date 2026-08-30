@@ -21,8 +21,24 @@ export const useZikirDB = () => {
   }, [refresh]);
 
   const save = useCallback(
-    async (formData: ZikirFormData, count: number) => {
-      await repo.insert(formData, count);
+    async (formData: ZikirFormData, count: number): Promise<Zikir> => {
+      const id = await repo.insert(formData, count);
+      await refresh();
+      return {
+        id,
+        name: formData.name,
+        arabicName: formData.arabicName,
+        count,
+        target: formData.target,
+        createdAt: new Date().toISOString(),
+      };
+    },
+    [refresh]
+  );
+
+  const updateZikir = useCallback(
+    async (id: number, count: number, formData?: ZikirFormData) => {
+      await repo.update(id, count, formData);
       await refresh();
     },
     [refresh]
@@ -36,5 +52,5 @@ export const useZikirDB = () => {
     [refresh]
   );
 
-  return { zikirler, loading, save, deleteZikir, refresh };
+  return { zikirler, loading, save, updateZikir, deleteZikir, refresh };
 };

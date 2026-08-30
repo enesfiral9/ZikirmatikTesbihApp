@@ -71,7 +71,13 @@ const ZikirlerimScreen: React.FC<Props> = ({ navigation }) => {
           data={zikirler}
           keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => (
-            <ZikirListItem item={item} onDelete={deleteZikir} />
+            <ZikirListItem
+              item={item}
+              onSelect={(selected) =>
+                navigation.navigate('Counter', { activeZikir: selected })
+              }
+              onDelete={deleteZikir}
+            />
           )}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}

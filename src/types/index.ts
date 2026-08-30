@@ -14,7 +14,7 @@ export interface ZikirFormData {
 }
 
 export type RootStackParamList = {
-  Counter: undefined;
+  Counter: { activeZikir?: Zikir } | undefined;
   Zikirlerim: undefined;
   Settings: undefined;
 };

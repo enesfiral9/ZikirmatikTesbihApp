@@ -2,16 +2,18 @@
   "expo": {
     "name": "Zikirmatik: Tesbih",
     "slug": "zikirmatik-tesbih",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.zikirmatik.tesbihapp"
+      "bundleIdentifier": "com.zikirmatik.tesbihapp",
+      "buildNumber": "2"
     },
     "android": {
       "package": "com.zikirmatik.tesbihapp",
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

@@ -14,14 +14,19 @@ import { colors } from '../../theme/colors';
 
 interface Props {
   item: Zikir;
+  onSelect?: (item: Zikir) => void;
   onDelete: (id: number) => void;
 }
 
-const ZikirListItem: React.FC<Props> = ({ item, onDelete }) => {
+const ZikirListItem: React.FC<Props> = ({ item, onSelect, onDelete }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const handleMenu = () => {
     Alert.alert(item.name, item.arabicName ? item.arabicName : undefined, [
+      {
+        text: 'Devam Et',
+        onPress: () => onSelect?.(item),
+      },
       {
         text: 'Sil',
         style: 'destructive',
@@ -32,7 +37,11 @@ const ZikirListItem: React.FC<Props> = ({ item, onDelete }) => {
   };
 
   return (
-    <View style={styles.row}>
+    <TouchableOpacity
+      style={styles.row}
+      onPress={() => onSelect?.(item)}
+      activeOpacity={0.7}
+    >
       {/* Sol — isim + tarih */}
       <View style={styles.info}>
         <Text style={styles.name}>{item.name}</Text>
@@ -52,7 +61,7 @@ const ZikirListItem: React.FC<Props> = ({ item, onDelete }) => {
           <Ionicons name="menu" size={22} color={colors.primaryLight} />
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

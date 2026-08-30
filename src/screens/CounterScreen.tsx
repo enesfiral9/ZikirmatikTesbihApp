@@ -1,16 +1,18 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   StyleSheet,
   Alert,
   Text,
+  TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useKeepAwake } from 'expo-keep-awake';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { RouteProp } from '@react-navigation/native';
 
-import { RootStackParamList, ZikirFormData } from '../types';
+import { RootStackParamList, Zikir, ZikirFormData } from '../types';
 
 import TopBar from '../components/ui/TopBar';
 import ActionButton from '../components/ui/ActionButton';
@@ -25,15 +27,17 @@ import { useZikirDB } from '../hooks/useZikirDB';
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, 'Counter'>;
+  route: RouteProp<RootStackParamList, 'Counter'>;
 };
 
-const CounterScreen: React.FC<Props> = ({ navigation }) => {
+const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
   useKeepAwake();
 
-  const [target] = useState(33);
+  const [activeZikir, setActiveZikir] = useState<Zikir | null>(null);
+  const [target, setTarget] = useState(33);
   const [saveModalVisible, setSaveModalVisible] = useState(false);
   const { enabled: hapticsEnabled, trigger, triggerSuccess, toggle: toggleHaptics } = useHaptics();
-  const { save } = useZikirDB();
+  const { save, updateZikir } = useZikirDB();
 
   const handleTargetReached = useCallback(async () => {
     await triggerSuccess();
@@ -42,10 +46,19 @@ const CounterScreen: React.FC<Props> = ({ navigation }) => {
     ]);
   }, [target, triggerSuccess]);
 
-  const { count, increment, reset } = useCounter({
+  const { count, setCount, increment, reset } = useCounter({
     target,
     onTargetReached: handleTargetReached,
   });
+
+  useEffect(() => {
+    if (route.params?.activeZikir) {
+      const z = route.params.activeZikir;
+      setActiveZikir(z);
+      setCount(z.count);
+      setTarget(z.target || 33);
+    }
+  }, [route.params?.activeZikir, setCount]);
 
   const handleIncrement = useCallback(async () => {
     await trigger();
@@ -55,17 +68,46 @@ const CounterScreen: React.FC<Props> = ({ navigation }) => {
   const handleReset = useCallback(() => {
     Alert.alert('Sıfırla', 'Sayacı sıfırlamak istiyor musunuz?', [
       { text: 'İptal', style: 'cancel' },
-      { text: 'Sıfırla', onPress: reset, style: 'destructive' },
+      {
+        text: 'Sıfırla',
+        style: 'destructive',
+        onPress: () => {
+          reset();
+          setActiveZikir(null);
+        },
+      },
     ]);
   }, [reset]);
 
-  const handleSave = useCallback(
+  const handleSaveOrUpdate = useCallback(async () => {
+    if (activeZikir) {
+      await updateZikir(activeZikir.id, count);
+      setActiveZikir((prev) => (prev ? { ...prev, count } : null));
+      Alert.alert('Üzerine Eklendi ✓', `"${activeZikir.name}" zikri ${count} olarak güncellendi.`);
+    } else {
+      setSaveModalVisible(true);
+    }
+  }, [activeZikir, count, updateZikir]);
+
+  const handleModalSave = useCallback(
     async (data: ZikirFormData) => {
-      await save(data, count);
-      setSaveModalVisible(false);
-      Alert.alert('Kaydedildi ✓', `"${data.name}" listenize eklendi.`);
+      if (activeZikir) {
+        await updateZikir(activeZikir.id, count, data);
+        setActiveZikir((prev) =>
+          prev
+            ? { ...prev, name: data.name, arabicName: data.arabicName, target: data.target, count }
+            : null
+        );
+        setSaveModalVisible(false);
+        Alert.alert('Güncellendi ✓', `"${data.name}" kaydedildi.`);
+      } else {
+        const created = await save(data, count);
+        setActiveZikir(created);
+        setSaveModalVisible(false);
+        Alert.alert('Kaydedildi ✓', `"${data.name}" listenize eklendi ve üzerine ekleme moduna geçildi.`);
+      }
     },
-    [save, count]
+    [activeZikir, save, updateZikir, count]
   );
 
   return (
@@ -91,34 +133,31 @@ const CounterScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* ── Orta: Fiziksel Tesbih Gövdesi ── */}
         <View style={styles.counterSection}>
-          {/*
-            Referanstaki şekil: üstten baskıca oval,
-            altta daha geniş — rounded pentagon gibi
-          */}
           <View style={styles.greenGlow}>
-            {/* Parlak yeşil dış kenar */}
             <View style={styles.bodyOuter}>
-              {/* Siyah/koyu gövde */}
               <View style={styles.bodyInner}>
 
-                {/* Etiket */}
-                <Text style={styles.label}>AKILLI ZİKİRMATİK</Text>
+                {/* Etiket veya Aktif Zikir İsim */}
+                {activeZikir ? (
+                  <View style={styles.activeHeader}>
+                    <Text style={styles.activeTitle} numberOfLines={1}>
+                      📌 {activeZikir.name}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={styles.label}>AKILLI ZİKİRMATİK</Text>
+                )}
 
                 {/* LCD Ekran */}
                 <View style={styles.displayWrap}>
                   <CounterDisplay count={count} target={target} />
                 </View>
 
-                {/* Butonlar:
-                    - Küçük reset üstte-sağda
-                    - Büyük metalik tam ortada-altta
-                */}
+                {/* Butonlar */}
                 <View style={styles.buttonsArea}>
-                  {/* Küçük reset — sağ üst köşe */}
                   <View style={styles.resetPosition}>
                     <ResetButton onPress={handleReset} />
                   </View>
-                  {/* Büyük metalik sayaç butonu — tam ortada */}
                   <CounterButton onPress={handleIncrement} />
                 </View>
 
@@ -127,11 +166,11 @@ const CounterScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </View>
 
-        {/* ── Alt: KAYDET + ZİKİRLERİM ── */}
+        {/* ── Alt: KAYDET / ÜZERİNE EKLE + ZİKİRLERİM ── */}
         <View style={styles.bottomSection}>
           <ActionButton
-            label="KAYDET"
-            onPress={() => setSaveModalVisible(true)}
+            label={activeZikir ? 'ÜZERİNE EKLE' : 'KAYDET'}
+            onPress={handleSaveOrUpdate}
           />
           <ActionButton
             label="ZİKİRLERİM"
@@ -144,7 +183,8 @@ const CounterScreen: React.FC<Props> = ({ navigation }) => {
       <SaveModal
         visible={saveModalVisible}
         currentCount={count}
-        onSave={handleSave}
+        activeZikir={activeZikir}
+        onSave={handleModalSave}
         onCancel={() => setSaveModalVisible(false)}
       />
     </View>
@@ -216,6 +256,22 @@ const styles = StyleSheet.create({
     letterSpacing: 2.5,
     fontFamily: 'monospace',
     textTransform: 'uppercase',
+  },
+
+  activeHeader: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    backgroundColor: 'rgba(76, 175, 80, 0.2)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(76, 175, 80, 0.4)',
+    maxWidth: '90%',
+  },
+  activeTitle: {
+    color: '#81C784',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 
   /* LCD sarmalayıcı */

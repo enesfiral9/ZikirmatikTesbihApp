@@ -11,11 +11,12 @@ import {
   ScrollView,
 } from 'react-native';
 import { colors } from '../../theme/colors';
-import { ZikirFormData } from '../../types';
+import { Zikir, ZikirFormData } from '../../types';
 
 interface Props {
   visible: boolean;
   currentCount: number;
+  activeZikir?: Zikir | null;
   onSave: (data: ZikirFormData) => void;
   onCancel: () => void;
 }
@@ -34,6 +35,7 @@ const PRESET_TARGETS = [0, 33, 99, 100, 500, 1000];
 const SaveModal: React.FC<Props> = ({
   visible,
   currentCount,
+  activeZikir,
   onSave,
   onCancel,
 }) => {
@@ -42,6 +44,28 @@ const SaveModal: React.FC<Props> = ({
   const [target, setTarget] = useState(33);
   const [customTarget, setCustomTarget] = useState('');
   const [useCustomTarget, setUseCustomTarget] = useState(false);
+
+  React.useEffect(() => {
+    if (visible) {
+      if (activeZikir) {
+        setName(activeZikir.name);
+        setArabicName(activeZikir.arabicName || '');
+        if (PRESET_TARGETS.includes(activeZikir.target)) {
+          setTarget(activeZikir.target);
+          setUseCustomTarget(false);
+        } else {
+          setCustomTarget(String(activeZikir.target));
+          setUseCustomTarget(true);
+        }
+      } else {
+        setName('');
+        setArabicName('');
+        setTarget(33);
+        setCustomTarget('');
+        setUseCustomTarget(false);
+      }
+    }
+  }, [visible, activeZikir]);
 
   const handlePreset = (preset: { name: string; arabic: string }) => {
     setName(preset.name);
@@ -79,7 +103,9 @@ const SaveModal: React.FC<Props> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.card}>
-          <Text style={styles.title}>Listeye Kaydet</Text>
+          <Text style={styles.title}>
+            {activeZikir ? 'Zikri Güncelle / Üzerine Ekle' : 'Listeye Kaydet'}
+          </Text>
           <Text style={styles.countInfo}>Sayım: {currentCount}</Text>
 
           {/* Hızlı seçimler */}
@@ -193,7 +219,9 @@ const SaveModal: React.FC<Props> = ({
               style={[styles.saveBtn, !name.trim() && styles.saveBtnDisabled]}
               disabled={!name.trim()}
             >
-              <Text style={styles.saveText}>KAYDET</Text>
+              <Text style={styles.saveText}>
+                {activeZikir ? 'ÜZERİNE EKLE' : 'KAYDET'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

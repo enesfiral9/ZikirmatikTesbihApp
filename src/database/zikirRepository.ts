@@ -26,9 +26,9 @@ export const getAll = async (): Promise<Zikir[]> => {
   }));
 };
 
-export const insert = async (data: ZikirFormData, count: number): Promise<void> => {
+export const insert = async (data: ZikirFormData, count: number): Promise<number> => {
   const db = await getDB();
-  await db.runAsync(
+  const result = await db.runAsync(
     `INSERT INTO zikirler (name, arabic_name, count, target, created_at)
      VALUES (?, ?, ?, ?, ?)`,
     data.name,
@@ -37,11 +37,23 @@ export const insert = async (data: ZikirFormData, count: number): Promise<void> 
     data.target,
     new Date().toISOString()
   );
+  return result.lastInsertRowId;
 };
 
-export const update = async (id: number, count: number): Promise<void> => {
+export const update = async (id: number, count: number, data?: ZikirFormData): Promise<void> => {
   const db = await getDB();
-  await db.runAsync('UPDATE zikirler SET count = ? WHERE id = ?', count, id);
+  if (data) {
+    await db.runAsync(
+      'UPDATE zikirler SET name = ?, arabic_name = ?, count = ?, target = ? WHERE id = ?',
+      data.name,
+      data.arabicName ?? '',
+      count,
+      data.target,
+      id
+    );
+  } else {
+    await db.runAsync('UPDATE zikirler SET count = ? WHERE id = ?', count, id);
+  }
 };
 
 export const remove = async (id: number): Promise<void> => {

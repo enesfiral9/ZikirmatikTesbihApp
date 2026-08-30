@@ -25,5 +25,5 @@ export const useCounter = ({ target, onTargetReached }: UseCounterOptions) => {
     targetReachedFired.current = false;
   }, []);
 
-  return { count, increment, reset };
+  return { count, setCount, increment, reset };
 };
