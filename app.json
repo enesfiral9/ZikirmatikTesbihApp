@@ -1,15 +1,17 @@
 {
   "expo": {
-    "name": "zikir",
-    "slug": "zikir",
+    "name": "Zikirmatik: Tesbih",
+    "slug": "zikirmatik-tesbih",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.zikirmatik.tesbihapp"
     },
     "android": {
+      "package": "com.zikirmatik.tesbihapp",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -20,6 +22,15 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-sqlite"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "670fb56f-6655-4eb0-9cc6-0e42c3a7d46d"
+      }
+    },
+    "owner": "ensfiral"
   }
 }
