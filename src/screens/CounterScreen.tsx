@@ -13,6 +13,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 
 import { RootStackParamList, Zikir, ZikirFormData } from '../types';
+import { THEMES, Theme } from '../theme/themes';
 
 import TopBar from '../components/ui/TopBar';
 import ActionButton from '../components/ui/ActionButton';
@@ -20,6 +21,7 @@ import CounterDisplay from '../components/Counter/CounterDisplay';
 import CounterButton from '../components/Counter/CounterButton';
 import ResetButton from '../components/Counter/ResetButton';
 import SaveModal from '../components/modals/SaveModal';
+import ThemeModal from '../components/modals/ThemeModal';
 
 import { useCounter } from '../hooks/useCounter';
 import { useHaptics } from '../hooks/useHaptics';
@@ -36,6 +38,9 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
   const [activeZikir, setActiveZikir] = useState<Zikir | null>(null);
   const [target, setTarget] = useState(33);
   const [saveModalVisible, setSaveModalVisible] = useState(false);
+  const [themeModalVisible, setThemeModalVisible] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<Theme>(THEMES[0]);
+
   const { enabled: hapticsEnabled, trigger, triggerSuccess, toggle: toggleHaptics } = useHaptics();
   const { save, updateZikir } = useZikirDB();
 
@@ -112,9 +117,9 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <View style={styles.root}>
-      {/* Yeşil arka plan */}
+      {/* Dinamik Arka Plan Gradiyenti */}
       <LinearGradient
-        colors={['#1E6B24', '#2E7D32', '#1E6B24']}
+        colors={currentTheme.bgGradient}
         style={StyleSheet.absoluteFill}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -122,25 +127,38 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
 
       <SafeAreaView style={styles.safeArea}>
 
-        {/* ── Üst bar: 4 koyu yeşil daire ── */}
+        {/* ── Üst bar: 4 daire buton ── */}
         <View style={styles.topSection}>
           <TopBar
             hapticsEnabled={hapticsEnabled}
             onToggleHaptics={toggleHaptics}
+            onOpenThemeModal={() => setThemeModalVisible(true)}
             onOpenSettings={() => {}}
+            topBtnBg={currentTheme.topBtnBg}
           />
         </View>
 
         {/* ── Orta: Fiziksel Tesbih Gövdesi ── */}
         <View style={styles.counterSection}>
-          <View style={styles.greenGlow}>
-            <View style={styles.bodyOuter}>
+          <View style={[styles.greenGlow, { shadowColor: currentTheme.glowShadow }]}>
+            <View style={[styles.bodyOuter, { backgroundColor: currentTheme.outerBorder }]}>
               <View style={styles.bodyInner}>
 
                 {/* Etiket veya Aktif Zikir İsim */}
                 {activeZikir ? (
-                  <View style={styles.activeHeader}>
-                    <Text style={styles.activeTitle} numberOfLines={1}>
+                  <View
+                    style={[
+                      styles.activeHeader,
+                      {
+                        backgroundColor: currentTheme.activeTagBg,
+                        borderColor: currentTheme.activeTagBorder,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.activeTitle, { color: currentTheme.activeTagText }]}
+                      numberOfLines={1}
+                    >
                       📌 {activeZikir.name}
                     </Text>
                   </View>
@@ -186,6 +204,13 @@ const CounterScreen: React.FC<Props> = ({ navigation, route }) => {
         activeZikir={activeZikir}
         onSave={handleModalSave}
         onCancel={() => setSaveModalVisible(false)}
+      />
+
+      <ThemeModal
+        visible={themeModalVisible}
+        currentTheme={currentTheme}
+        onSelectTheme={setCurrentTheme}
+        onClose={() => setThemeModalVisible(false)}
       />
     </View>
   );

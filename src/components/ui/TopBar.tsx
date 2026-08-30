@@ -6,29 +6,33 @@ import { colors } from '../../theme/colors';
 interface Props {
   hapticsEnabled: boolean;
   onToggleHaptics: () => void;
+  onOpenThemeModal: () => void;
   onOpenSettings: () => void;
+  topBtnBg?: string;
 }
 
 const ICONS: {
   name: keyof typeof Ionicons.glyphMap;
   key: string;
 }[] = [
-  { name: 'star',                  key: 'star'     },
+  { name: 'star-outline',          key: 'star'     },
   { name: 'phone-portrait-outline', key: 'haptics'  },
+  { name: 'color-palette-outline',  key: 'theme'    },
   { name: 'settings-outline',       key: 'settings' },
-  { name: 'extension-puzzle-outline', key: 'puzzle' },
 ];
 
 const TopBar: React.FC<Props> = ({
   hapticsEnabled,
   onToggleHaptics,
+  onOpenThemeModal,
   onOpenSettings,
+  topBtnBg,
 }) => {
   const handlers: Record<string, () => void> = {
     star:     () => {},
     haptics:  onToggleHaptics,
+    theme:    onOpenThemeModal,
     settings: onOpenSettings,
-    puzzle:   () => {},
   };
 
   return (
@@ -36,7 +40,10 @@ const TopBar: React.FC<Props> = ({
       {ICONS.map((btn) => (
         <TouchableOpacity
           key={btn.key}
-          style={styles.iconBtn}
+          style={[
+            styles.iconBtn,
+            topBtnBg ? { backgroundColor: topBtnBg } : null,
+          ]}
           onPress={handlers[btn.key]}
           activeOpacity={0.75}
         >
@@ -68,7 +75,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: colors.primaryDark,   // #0A3D0A — referanstaki koyu yeşil
+    backgroundColor: colors.primaryDark,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
